@@ -3,6 +3,8 @@ from PIL import Image, ImageTk
 from speech_to_text import speech_to_text
 from text_to_speech import text_to_speech 
 from gemini_chat import get_ai_reply
+from save_pdf import save_conversation_pdf
+
 
 def ask_voice():
     user_text = speech_to_text()
@@ -100,12 +102,13 @@ clear_btn.grid(row=0, column=1, padx=8)
 
 send_btn = tk.Button(
     btn_frame,
-    text="Send",
+    text="Save",
     bg="#22c55e",
     fg="white",
     font=("Arial", 10, "bold"),
     width=12,
-    bd=0
+    bd=0,
+    command=lambda: save_conversation_pdf(conversation)
 )
 send_btn.grid(row=0, column=2, padx=8)
 
