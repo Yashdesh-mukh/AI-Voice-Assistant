@@ -28,19 +28,17 @@ def ask_voice():
 
 
 
-
-# ---------- Main Window ----------
 root = tk.Tk()
 root.title("AI Voice Assistant")
 root.geometry("600x550")
 root.configure(bg="#eef2ff")
 root.resizable(False, False)
 
-# ---------- Main Card ----------
+# Main Card 
 card = tk.Frame(root, bg="white", bd=0)
 card.place(relx=0.5, rely=0.5, anchor="center", width=520, height=520)
 
-# ---------- Avatar ----------
+# Avatar
 img = Image.open("avatar.jpg")
 img = img.resize((100, 100))
 avatar = ImageTk.PhotoImage(img)
@@ -48,7 +46,7 @@ avatar = ImageTk.PhotoImage(img)
 avatar_label = tk.Label(card, image=avatar, bg="white")
 avatar_label.pack(pady=10)
 
-# ---------- Title ----------
+# Title
 title = tk.Label(
     card,
     text="AI Voice Assistant",
@@ -57,7 +55,7 @@ title = tk.Label(
 )
 title.pack(pady=5)
 
-# ---------- Conversation Box ----------
+# Conversation Box 
 text_frame = tk.Frame(card, bg="white")
 text_frame.pack(pady=10)
 
@@ -72,7 +70,7 @@ conversation = tk.Text(
 conversation.insert("1.0", "Conversation will appear here...")
 conversation.pack()
 
-# ---------- Buttons ----------
+# Buttons
 btn_frame = tk.Frame(card, bg="white")
 btn_frame.pack(pady=15)
 
