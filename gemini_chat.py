@@ -12,7 +12,7 @@ def get_ai_reply(user_text):
     try:
         response = client.models.generate_content(
             model="gemini-3-flash-preview", 
-            contents= f"max 50 words.{user_text}"
+            contents = f"Answer in maximum 50 words. {user_text}"
         )
 
         return response.text
