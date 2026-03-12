@@ -1,98 +1,69 @@
 import tkinter as tk
-from PIL import Image, ImageTk
 
 
 class AssistantUI:
-    def __init__(self, ask_callback, save_callback):
+    def __init__(self, ask_callback, save_callback, history_select_callback):
+
         self.root = tk.Tk()
         self.root.title("AI Voice Assistant")
-        self.root.geometry("600x550")
+        self.root.geometry("900x550")
         self.root.configure(bg="#eef2ff")
-        self.root.resizable(False, False)
 
-        # Main Card
-        card = tk.Frame(self.root, bg="white", bd=0)
-        card.place(relx=0.5, rely=0.5, anchor="center", width=520, height=520)
+        # LEFT PANEL (History)
+        left_frame = tk.Frame(self.root, bg="#1e293b", width=250)
+        left_frame.pack(side="left", fill="y")
 
-        # Avatar
-        img = Image.open("avatar.jpg")
-        img = img.resize((100, 100))
-        self.avatar = ImageTk.PhotoImage(img)
-
-        avatar_label = tk.Label(card, image=self.avatar, bg="white")
-        avatar_label.pack(pady=10)
-
-        # Title
-        title = tk.Label(
-            card,
-            text="AI Voice Assistant",
-            font=("Arial", 16, "bold"),
-            bg="white"
+        history_label = tk.Label(
+            left_frame,
+            text="Chat History",
+            fg="white",
+            bg="#1e293b",
+            font=("Arial", 14, "bold")
         )
-        title.pack(pady=5)
+        history_label.pack(pady=10)
 
-        # Text Frame
-        text_frame = tk.Frame(card, bg="white")
-        text_frame.pack(pady=10)
+        self.history_listbox = tk.Listbox(
+            left_frame,
+            bg="white",
+            width=30
+        )
+        self.history_listbox.pack(fill="both", expand=True, padx=10, pady=10)
 
-        scrollbar = tk.Scrollbar(text_frame)
+        self.history_listbox.bind("<<ListboxSelect>>", history_select_callback)
+
+        # RIGHT PANEL (Chat)
+        right_frame = tk.Frame(self.root, bg="white")
+        right_frame.pack(side="right", fill="both", expand=True)
 
         self.conversation = tk.Text(
-            text_frame,
-            width=55,
-            height=10,
-            font=("Arial", 10),
-            bd=1,
-            relief="solid",
-            wrap="word",
-            yscrollcommand=scrollbar.set
+            right_frame,
+            font=("Arial", 11),
+            wrap="word"
         )
+        self.conversation.pack(fill="both", expand=True, padx=15, pady=15)
 
-        scrollbar.config(command=self.conversation.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.conversation.pack(side=tk.LEFT)
-
-        self.conversation.insert("1.0", "Click Ask and start speaking...\n")
-
-        # Buttons
-        btn_frame = tk.Frame(card, bg="white")
-        btn_frame.pack(pady=15)
+        btn_frame = tk.Frame(right_frame, bg="white")
+        btn_frame.pack(pady=10)
 
         self.ask_btn = tk.Button(
             btn_frame,
             text="Ask",
             bg="#6366f1",
             fg="white",
-            font=("Arial", 10, "bold"),
             width=12,
-            bd=0,
             command=ask_callback
         )
         self.ask_btn.grid(row=0, column=0, padx=8)
-
-        clear_btn = tk.Button(
-            btn_frame,
-            text="Clear",
-            bg="#ef4444",
-            fg="white",
-            font=("Arial", 10, "bold"),
-            width=12,
-            bd=0,
-            command=lambda: self.conversation.delete("1.0", tk.END)
-        )
-        clear_btn.grid(row=0, column=1, padx=8)
 
         save_btn = tk.Button(
             btn_frame,
             text="Save",
             bg="#22c55e",
             fg="white",
-            font=("Arial", 10, "bold"),
             width=12,
-            bd=0,
             command=save_callback
         )
-        save_btn.grid(row=0, column=2, padx=8)
+        save_btn.grid(row=0, column=1, padx=8)
 
     def run(self):
         self.root.mainloop()
