@@ -1,6 +1,7 @@
 import threading
 import tkinter as tk
 import uuid
+import time
 
 from speech_to_text import speech_to_text
 from text_to_speech import text_to_speech
@@ -17,6 +18,41 @@ from commands import run_command
 
 
 session_id = str(uuid.uuid4())
+mic_running = True
+
+
+# -------------------------
+# Typing Effect
+# -------------------------
+def type_ai_text(text):
+
+    for char in text:
+        ui.conversation.insert(tk.END, char)
+        ui.conversation.update()
+        time.sleep(0.02)
+
+    ui.conversation.insert(tk.END, "\n")
+
+
+# -------------------------
+# AI Response Handler
+# -------------------------
+def respond(reply):
+
+    ui.conversation.insert(tk.END, "AI : ")
+
+    typing_thread = threading.Thread(
+        target=type_ai_text,
+        args=(reply,)
+    )
+
+    speech_thread = threading.Thread(
+        target=text_to_speech,
+        args=(reply,)
+    )
+
+    typing_thread.start()
+    speech_thread.start()
 
 
 # -------------------------
@@ -24,9 +60,8 @@ session_id = str(uuid.uuid4())
 # -------------------------
 def process_voice():
 
-    ui.ask_btn.config(state="disabled")
-
     try:
+
         user_text = speech_to_text()
 
         if not user_text:
@@ -37,24 +72,35 @@ def process_voice():
         command_reply = run_command(user_text)
 
         if command_reply:
-            ui.conversation.insert(tk.END, f"AI : {command_reply}\n")
-            text_to_speech(command_reply)
+            respond(command_reply)
 
         else:
             ai_text = get_ai_reply(user_text)
-            ui.conversation.insert(tk.END, f"AI : {ai_text}\n")
-            text_to_speech(ai_text)
+            respond(ai_text)
 
     except Exception as e:
+
         print(e)
         ui.conversation.insert(tk.END, "\nAI : Error occurred\n")
 
-    finally:
-        ui.ask_btn.config(state="normal")
+
+# -------------------------
+# Continuous Mic
+# -------------------------
+def listen_continuously():
+
+    while mic_running:
+
+        process_voice()
 
 
-def ask_voice():
-    thread = threading.Thread(target=process_voice)
+# -------------------------
+# Start Mic Thread
+# -------------------------
+def start_mic():
+
+    thread = threading.Thread(target=listen_continuously)
+    thread.daemon = True
     thread.start()
 
 
@@ -73,13 +119,11 @@ def send_text():
     command_reply = run_command(user_text)
 
     if command_reply:
-        ui.conversation.insert(tk.END, f"AI : {command_reply}\n")
-        text_to_speech(command_reply)
+        respond(command_reply)
 
     else:
         ai_text = get_ai_reply(user_text)
-        ui.conversation.insert(tk.END, f"AI : {ai_text}\n")
-        text_to_speech(ai_text)
+        respond(ai_text)
 
     ui.input_box.delete(0, tk.END)
 
@@ -101,7 +145,8 @@ def delete_chat():
     if not selection:
         return
 
-    session = ui.history_listbox.get(selection[0])
+    display = ui.history_listbox.get(selection[0])
+    session = session_map[display]
 
     delete_session(session)
 
@@ -144,14 +189,20 @@ def save_chat_to_db():
 # -------------------------
 # Load History
 # -------------------------
+session_map = {}
+
 def load_history_list():
 
     sessions = get_all_sessions()
 
     ui.history_listbox.delete(0, "end")
 
-    for s in sessions:
-        ui.history_listbox.insert("end", s)
+    for session_id, time in sessions:
+
+        display = time
+        session_map[display] = session_id
+
+        ui.history_listbox.insert("end", display)
 
 
 # -------------------------
@@ -164,7 +215,8 @@ def load_selected_session(event):
     if not selection:
         return
 
-    session = ui.history_listbox.get(selection[0])
+    display = ui.history_listbox.get(selection[0])
+    session = session_map[display]
 
     chats = get_chats_by_session(session)
 
@@ -179,7 +231,7 @@ def load_selected_session(event):
 # Start App
 # -------------------------
 ui = AssistantUI(
-    ask_voice,
+    None,
     save_chat_to_db,
     load_selected_session,
     send_text,
@@ -188,5 +240,8 @@ ui = AssistantUI(
 )
 
 load_history_list()
+
+# start microphone automatically
+start_mic()
 
 ui.run()
