@@ -2,68 +2,65 @@ import tkinter as tk
 
 
 class AssistantUI:
-    def __init__(self, ask_callback, save_callback, history_select_callback):
+
+    def __init__(self, ask_callback, save_callback, history_callback,
+                 send_callback, clear_callback, delete_callback):
 
         self.root = tk.Tk()
         self.root.title("AI Voice Assistant")
         self.root.geometry("900x550")
-        self.root.configure(bg="#eef2ff")
 
-        # LEFT PANEL (History)
-        left_frame = tk.Frame(self.root, bg="#1e293b", width=250)
+        # LEFT SIDE (History)
+        left_frame = tk.Frame(self.root, width=250, bg="#1e293b")
         left_frame.pack(side="left", fill="y")
 
-        history_label = tk.Label(
+        label = tk.Label(
             left_frame,
             text="Chat History",
-            fg="white",
             bg="#1e293b",
+            fg="white",
             font=("Arial", 14, "bold")
         )
-        history_label.pack(pady=10)
+        label.pack(pady=10)
 
-        self.history_listbox = tk.Listbox(
-            left_frame,
-            bg="white",
-            width=30
-        )
+        self.history_listbox = tk.Listbox(left_frame)
         self.history_listbox.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self.history_listbox.bind("<<ListboxSelect>>", history_select_callback)
+        self.history_listbox.bind("<<ListboxSelect>>", history_callback)
 
-        # RIGHT PANEL (Chat)
-        right_frame = tk.Frame(self.root, bg="white")
+        # RIGHT SIDE
+        right_frame = tk.Frame(self.root)
         right_frame.pack(side="right", fill="both", expand=True)
 
-        self.conversation = tk.Text(
-            right_frame,
-            font=("Arial", 11),
-            wrap="word"
-        )
-        self.conversation.pack(fill="both", expand=True, padx=15, pady=15)
+        # Chat area
+        self.conversation = tk.Text(right_frame, font=("Arial", 11))
+        self.conversation.pack(fill="both", expand=True, padx=10, pady=10)
 
-        btn_frame = tk.Frame(right_frame, bg="white")
+        # Typing area
+        input_frame = tk.Frame(right_frame)
+        input_frame.pack(fill="x", padx=10, pady=5)
+
+        self.input_box = tk.Entry(input_frame)
+        self.input_box.pack(side="left", fill="x", expand=True)
+
+        send_btn = tk.Button(input_frame, text="Send", command=send_callback)
+        send_btn.pack(side="right")
+
+        # Buttons
+        btn_frame = tk.Frame(right_frame)
         btn_frame.pack(pady=10)
 
-        self.ask_btn = tk.Button(
-            btn_frame,
-            text="Ask",
-            bg="#6366f1",
-            fg="white",
-            width=12,
-            command=ask_callback
-        )
-        self.ask_btn.grid(row=0, column=0, padx=8)
+        self.ask_btn = tk.Button(btn_frame, text="Ask", width=10, command=ask_callback)
+        self.ask_btn.grid(row=0, column=0, padx=5)
 
-        save_btn = tk.Button(
-            btn_frame,
-            text="Save",
-            bg="#22c55e",
-            fg="white",
-            width=12,
-            command=save_callback
-        )
-        save_btn.grid(row=0, column=1, padx=8)
+        save_btn = tk.Button(btn_frame, text="Save", width=10, command=save_callback)
+        save_btn.grid(row=0, column=1, padx=5)
+
+        clear_btn = tk.Button(btn_frame, text="Clear", width=10, command=clear_callback)
+        clear_btn.grid(row=0, column=2, padx=5)
+
+        delete_btn = tk.Button(btn_frame, text="Delete", width=10, command=delete_callback)
+        delete_btn.grid(row=0, column=3, padx=5)
 
     def run(self):
         self.root.mainloop()

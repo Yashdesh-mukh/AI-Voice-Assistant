@@ -1,93 +1,79 @@
-import os
-import mysql.connector
-from dotenv import load_dotenv
-
-load_dotenv()
+import sqlite3
 
 
-def connect_db():
-    try:
-        password = os.getenv("DB_PASSWORD")
+conn = sqlite3.connect("chat.db")
+cursor = conn.cursor()
 
-        if not password:
-            raise ValueError("DB_PASSWORD not found")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS chats (
+    session_id TEXT,
+    user_text TEXT,
+    ai_text TEXT
+)
+""")
 
-        return mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password=password,
-            database="ai_assistant"
-        )
-
-    except Exception as e:
-        print("Database Connection Error:", e)
-        return None
+conn.commit()
+conn.close()
 
 
+# Save chat
 def save_db(session_id, user_text, ai_text):
-    conn = None
-    cursor = None
 
-    try:
-        conn = connect_db()
-        if not conn:
-            return
+    conn = sqlite3.connect("chat.db")
+    cursor = conn.cursor()
 
-        cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO chats VALUES (?, ?, ?)",
+        (session_id, user_text, ai_text)
+    )
 
-        query = """
-        INSERT INTO chats (session_id, user_message, ai_message)
-        VALUES (%s, %s, %s)
-        """
-
-        cursor.execute(query, (session_id, user_text, ai_text))
-        conn.commit()
-
-    except Exception as e:
-        print("Database Save Error:", e)
-
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+    conn.commit()
+    conn.close()
 
 
+# Get sessions
 def get_all_sessions():
-    conn = connect_db()
+
+    conn = sqlite3.connect("chat.db")
     cursor = conn.cursor()
 
-    query = """
-    SELECT session_id
-    FROM chats
-    GROUP BY session_id
-    ORDER BY MAX(created_at) DESC
-    """
+    cursor.execute("SELECT DISTINCT session_id FROM chats")
 
-    cursor.execute(query)
-    sessions = cursor.fetchall()
+    rows = cursor.fetchall()
 
-    cursor.close()
     conn.close()
 
-    return [s[0] for s in sessions]
+    return [r[0] for r in rows]
 
 
-def get_chats_by_session(session_id):
-    conn = connect_db()
+# Get chats
+def get_chats_by_session(session):
+
+    conn = sqlite3.connect("chat.db")
     cursor = conn.cursor()
 
-    query = """
-    SELECT user_message, ai_message
-    FROM chats
-    WHERE session_id = %s
-    ORDER BY created_at ASC
-    """
+    cursor.execute(
+        "SELECT user_text, ai_text FROM chats WHERE session_id=?",
+        (session,)
+    )
 
-    cursor.execute(query, (session_id,))
-    chats = cursor.fetchall()
+    rows = cursor.fetchall()
 
-    cursor.close()
     conn.close()
 
-    return chats
+    return rows
+
+
+# Delete session
+def delete_session(session):
+
+    conn = sqlite3.connect("chat.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM chats WHERE session_id=?",
+        (session,)
+    )
+
+    conn.commit()
+    conn.close()
