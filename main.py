@@ -21,9 +21,12 @@ session_id = str(uuid.uuid4())
 mic_running = True
 
 
-# -------------------------
+assistant_active = False
+WAKE_WORD = "friday"
+
+
 # Typing Effect
-# -------------------------
+
 def type_ai_text(text):
 
     for char in text:
@@ -35,7 +38,7 @@ def type_ai_text(text):
 
 
 # -------------------------
-# AI Response Handler
+# AI Response
 # -------------------------
 def respond(reply):
 
@@ -60,28 +63,52 @@ def respond(reply):
 # -------------------------
 def process_voice():
 
+    global assistant_active
+
     try:
 
-        user_text = speech_to_text()
+        text = speech_to_text()
 
-        if not user_text:
+        if not text:
             return
 
-        ui.conversation.insert(tk.END, f"\nYou : {user_text}\n")
+        text = text.lower()
 
-        command_reply = run_command(user_text)
+        # ---- Wake word mode ----
+        if not assistant_active:
 
-        if command_reply:
-            respond(command_reply)
+            if WAKE_WORD in text:
 
-        else:
-            ai_text = get_ai_reply(user_text)
-            respond(ai_text)
+                assistant_active = True
+
+                ui.conversation.insert(tk.END, "\nAI : Yes, how can I help?\n")
+                text_to_speech("Yes, how can I help")
+
+            return
+
+
+        # ---- Command mode ----
+        if assistant_active:
+
+            user_text = text
+
+            ui.conversation.insert(tk.END, f"\nYou : {user_text}\n")
+
+            command_reply = run_command(user_text)
+
+            if command_reply:
+                respond(command_reply)
+
+            else:
+                ai_text = get_ai_reply(user_text)
+                respond(ai_text)
+
+            # go back to idle mode
+            assistant_active = False
+
 
     except Exception as e:
-
         print(e)
-        ui.conversation.insert(tk.END, "\nAI : Error occurred\n")
 
 
 # -------------------------
@@ -94,8 +121,9 @@ def listen_continuously():
         process_voice()
 
 
+
 # -------------------------
-# Start Mic Thread
+# Start Mic
 # -------------------------
 def start_mic():
 
@@ -120,7 +148,6 @@ def send_text():
 
     if command_reply:
         respond(command_reply)
-
     else:
         ai_text = get_ai_reply(user_text)
         respond(ai_text)
@@ -241,7 +268,7 @@ ui = AssistantUI(
 
 load_history_list()
 
-# start microphone automatically
+# start mic automatically
 start_mic()
 
 ui.run()
